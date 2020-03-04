@@ -1,5 +1,5 @@
-from django.shortcuts import render,redirect
-from django.contrib.auth import authenticate,login,logout
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
 from django.urls import reverse
 
@@ -21,17 +21,16 @@ def index(request):
     context_dict['pages'] = page_list
 
     visitor_cookie_handler(request)
-    
 
     response = render(request, 'rango/index.html', context=context_dict)
-    
+
     return response
 
 
 def about(request):
     context_dict = {}
     visitor_cookie_handler(request)
-    context_dict['visits'] =request.session['visits']
+    context_dict['visits'] = request.session['visits']
     print(request.method)
     print(request.user)
 
@@ -53,6 +52,7 @@ def show_category(request, category_name_slug):
         context_dict['pages'] = None
     return render(request, 'rango/category.html', context=context_dict)
 
+
 @login_required
 def add_category(request):
     form = CategoryForm()
@@ -73,6 +73,7 @@ def add_category(request):
             print(form.errors)
 
     return render(request, 'rango/add_category.html', {'form': form})
+
 
 @login_required
 def add_page(request, category_name_slug):
@@ -128,18 +129,19 @@ def register(request):
         user_form = UserForm()
         profile_form = UserProfileForm()
 
-    return render(request,'rango/register.html',context={'user_form':user_form,'profile_form':profile_form,'registered':registered})
+    return render(request, 'rango/register.html',
+                  context={'user_form': user_form, 'profile_form': profile_form, 'registered': registered})
 
 
 def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        user = authenticate(username=username,password=password)
+        user = authenticate(username=username, password=password)
 
         if user:
             if user.is_active:
-                login(request,user)
+                login(request, user)
                 return redirect(reverse('rango:index'))
             else:
                 return HttpResponse('Your Rango account is disabled.')
@@ -147,7 +149,7 @@ def user_login(request):
             print(f"Invalid login details:{username},{password}")
             return HttpResponse("Invalid login details supplied.")
     else:
-        return render(request,'rango/login.html')
+        return render(request, 'rango/login.html')
 
 
 @login_required
@@ -161,7 +163,7 @@ def user_logout(request):
     return redirect(reverse('rango:index'))
 
 
-def get_server_side_cookie(request,cookie,default_val=None):
+def get_server_side_cookie(request, cookie, default_val=None):
     val = request.session.get(cookie)
     if not val:
         val = default_val
@@ -172,14 +174,14 @@ def visitor_cookie_handler(request):
     visits = int(get_server_side_cookie(request, 'visits', '1'))
 
     last_visit_cookie = get_server_side_cookie(request, 'last_visit', str(datetime.now()))
-    last_visit_time = datetime.strptime(last_visit_cookie[:-7],'%Y-%m-%d %H:%M:%S')
+    last_visit_time = datetime.strptime(last_visit_cookie[:-7], '%Y-%m-%d %H:%M:%S')
 
-    if (datetime.now() - last_visit_time).days>0:
-        visits = visits+1
-        request.session['last_visit']=str(datetime.now())
+    if (datetime.now() - last_visit_time).days > 0:
+        visits = visits + 1
+        request.session['last_visit'] = str(datetime.now())
         # response.set_cookie('last_visit',str(datetime.now()))
     else:
-        request.session['last_visit']=last_visit_cookie
+        request.session['last_visit'] = last_visit_cookie
         # response.set_cookie('last_visit', last_visit_cookie)
-    request.session['visits']=visits
+    request.session['visits'] = visits
     # response.set_cookie('visits',visits)
